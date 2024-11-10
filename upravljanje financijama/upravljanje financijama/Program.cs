@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 class Program
 {
+    static Dictionary<int, (string firstName, string lastName, DateTime birthDate)> users = new Dictionary<int, (string, string, DateTime)>();
     static void Main()
     {
 
@@ -55,6 +56,7 @@ class Program
             {
                 case 1:
                     {
+                        Console.Clear();
                         UserCreation();
                         break;
                     }
@@ -103,14 +105,51 @@ class Program
             case 'a':
                 {
                     Console.Clear();
-                    Console.WriteLine("po id-u");
+                    Console.WriteLine("Unesite id korisnika kojeg zelite izbrisati");
+                    var isIdCorrect = int.TryParse(Console.ReadLine(), out var id);
+                    if (isIdCorrect)
+                    {
+                        if (users.ContainsKey(id))
+                        {
+                            users.Remove(id);
+                            Console.WriteLine("Korisnik uspješno izbrisan");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Korisnik s tim id-om ne postoji");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Krivi unos, molimo pokusajte ponovo");
+                    }
                     Console.ReadKey();
                     break;
                 }
             case 'b':
                 {
                     Console.Clear();
-                    Console.WriteLine("po imenu i prezimenu");
+                    Console.Write("Unesite ime korsinika kojeg zelite izbrisati:");
+                    var firstNameOfUserToDelete = Console.ReadLine();
+                    Console.Write("Unesite prezime korsinika kojeg zelite izbrisati:");
+                    var lastNameOfUserToDelete = Console.ReadLine();
+                    var usersToDelete = new KeyValuePair<int, (string firstName, string lastName, DateTime birthDate)>();
+                    foreach(var user in users)
+                    {
+                        if (user.Value.firstName == firstNameOfUserToDelete && user.Value.lastName == lastNameOfUserToDelete)
+                        {
+                            usersToDelete = user;
+                        }
+                    }
+                    if (usersToDelete.Key != 0)
+                    {
+                        users.Remove(usersToDelete.Key);
+                        Console.WriteLine("Korisnik uspješno izbrisan");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Korisnik s tim imenom i prezimenom ne postoji");
+                    }
                     Console.ReadKey();
                     break;
                 }
@@ -168,14 +207,24 @@ class Program
             case 'a':
                 {
                     Console.Clear();
-                    Console.WriteLine("po prezimenu");
+                    foreach (var user in users.OrderBy(user => user.Value.lastName))
+                    {
+                        Console.WriteLine($"{user.Key} - {user.Value.firstName} - {user.Value.lastName} - {user.Value.birthDate}");
+                    }
                     Console.ReadKey();
                     break;
                 }
+                
             case 'b':
                 {
                     Console.Clear();
-                    Console.WriteLine("stariji od 30");
+                    foreach (var user in users)
+                    {
+                        if (DateTime.Now.Year - user.Value.birthDate.Year > 30)
+                        {
+                            Console.WriteLine($"{user.Key} - {user.Value.firstName} - {user.Value.lastName} - {user.Value.birthDate}");
+                        }
+                    }
                     Console.ReadKey();
                     break;
                 }
@@ -205,11 +254,10 @@ class Program
     }
 
     static void UserCreation()
-    {
-        Console.Clear();
-        Dictionary<int, (string firstName, string lastName, DateTime birthDate)> users = new Dictionary<int, (string, string, DateTime)>();
+    { 
         while (true)
         {
+            Console.Clear();
             Console.WriteLine("Unesite ime korisnika");
             var firstName = Console.ReadLine();
             Console.WriteLine("Unesite prezime korisnika");
