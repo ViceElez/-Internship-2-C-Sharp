@@ -55,9 +55,7 @@ class Program
             {
                 case 1:
                     {
-                        Console.WriteLine("unos novog kor");
-                        Console.ReadKey();
-                        Console.Clear();
+                        UserCreation();
                         break;
                     }
 
@@ -206,6 +204,51 @@ class Program
 
     }
 
-
-
+    static void UserCreation()
+    {
+        Console.Clear();
+        Dictionary<int, (string firstName, string lastName, DateTime birthDate)> users = new Dictionary<int, (string, string, DateTime)>();
+        while (true)
+        {
+            Console.WriteLine("Unesite ime korisnika");
+            var firstName = Console.ReadLine();
+            Console.WriteLine("Unesite prezime korisnika");
+            var lastName = Console.ReadLine();
+            Console.WriteLine("Unesite datum rođenja korisnika");
+            var validbirthDate = DateTime.TryParse(Console.ReadLine(), out var birthDate);
+            var id = users.Count + 1;
+            if (!validbirthDate)
+            {
+                Console.WriteLine("Krivi unos, molimo pokušajte ponovo");
+                continue;
+            }
+            else
+            {
+                if (birthDate > DateTime.Now)
+                {
+                    Console.WriteLine("Datum rođenja ne može biti u budućnosti");
+                    continue;
+                }
+                users.Add(id, (firstName, lastName, birthDate));
+                Console.WriteLine("Korisnik uspješno dodan");
+                while (true)
+                {
+                    Console.WriteLine("Želite li dodati još korisnika? (da/ne)");
+                    var answer = Console.ReadLine().ToLower();
+                    if (answer == "da")
+                    {
+                        break;
+                    }
+                    else if (answer == "ne")
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Krivi unos, molimo pokušajte ponovo");
+                    }
+                }
+            }
+        }
+    }
 }
