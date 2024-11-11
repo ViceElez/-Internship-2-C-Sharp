@@ -3,36 +3,33 @@ using System.Collections.Generic;
 
 class Program
 {
-     static Dictionary<int, (string firstName, string lastName, DateTime birthDate,float liquidAccountBalance,float giroAccountBalance,
-         float prepaidAccountBalance)> users = new Dictionary<int, (string, string, DateTime, float, float, float)>();
+    static Dictionary<int, (string firstName, string lastName, DateTime birthDate,
+   Dictionary<string, float> accounts)> users = new Dictionary<int, (string, string, DateTime, Dictionary<string, float>)>();
+
+    static Dictionary<int, Dictionary<string, List<(int transactionId, float transactionAmount,
+        string transactionDescription, string transactionType, string transactionCategory, DateTime transactionTime)>>> transactions =
+        new Dictionary<int, Dictionary<string, List<(int, float, string, string, string, DateTime)>>>();
 
 
     static void Main()
     {
         users.Add(0, (
            "Josip", "Jovic", new DateTime(1980, 5, 27),
-           100.0f,
-           0.0f,
-           0.0f
+           new Dictionary<string, float> { { "Tekući", 100.0f }, { "Žiro", 0.0f }, { "Prepaid", 0.0f } }
        ));
         users.Add(1, (
-         "Ivan", "Kopic", new DateTime(2020, 1, 1),
-         100.0f,
-         0.0f,
-         0.0f
-     ));
+            "Ivan", "Kopic", new DateTime(2020, 1, 1),
+            new Dictionary<string, float> { { "Tekući", 100.0f }, { "Žiro", 0.0f }, { "Prepaid", 0.0f } }
+        ));
         users.Add(2, (
-         "Ana", "Oric", new DateTime(1980, 10, 8),
-         100.0f,
-         0.0f,
-         0.0f
-     ));
+            "Ana", "Oric", new DateTime(1980, 10, 8),
+            new Dictionary<string, float> { { "Tekući", 100.0f }, { "Žiro", 0.0f }, { "Prepaid", 0.0f } }
+        ));
         users.Add(3, (
-         "Toni", "Anikov", new DateTime(1980, 3, 20),
-         100.0f,
-         0.0f,
-         0.0f
-     ));
+            "Toni", "Anikov", new DateTime(1980, 3, 20),
+            new Dictionary<string, float> { { "Tekući", 100.0f }, { "Žiro", 0.0f }, { "Prepaid", 0.0f } }
+        ));
+
         bool mainMenuRunning = true;
         while (mainMenuRunning)
         {
@@ -149,7 +146,7 @@ class Program
                     Console.ReadKey();
                     continue;
                 }
-                users.Add(id, (firstName, lastName, birthDate,100.00f,0.00f,0.00f));
+                users.Add(id, (firstName, lastName, birthDate, new Dictionary<string, float> { { "liquidAccountBalance", 100.0f }, { "giroAccountBalance", 0.0f }, { "prepaidAccountBalance", 0.0f } }));
                 Console.WriteLine("Korisnik uspješno dodan");
                 while (true)
                 {
@@ -214,8 +211,7 @@ class Program
                         Console.Write("Unesite prezime korsinika kojeg zelite izbrisati:");
                         var lastNameOfUserToDelete = Console.ReadLine();
 
-                        var usersToDelete = new KeyValuePair<int, (string firstName, string lastName, DateTime birthDate, float liquidAccountBalance, float giroAccountBalance,
-                        float prepaidAccountBalance)>();
+                        var usersToDelete = new KeyValuePair<int, (string, string, DateTime, Dictionary<string, float>)>();
                         foreach (var user in users)
                         {
                             if (user.Value.firstName == firstNameOfUserToDelete && user.Value.lastName == lastNameOfUserToDelete)
@@ -292,7 +288,7 @@ class Program
                                             Console.ReadKey();
                                             continue;
                                         }
-                                        users[id] = (newFirstName, newLastName, newBirthDate, users[id].liquidAccountBalance, users[id].giroAccountBalance, users[id].prepaidAccountBalance);
+                                        users[id] = (newFirstName, newLastName, newBirthDate, users[id].accounts);
                                         Console.WriteLine("Korisnik uspješno izmjenjen");
                                         break;
                                     }
@@ -368,7 +364,7 @@ class Program
                         Console.Clear();
                         foreach (var user in users)
                         {
-                            if (user.Value.liquidAccountBalance < 0 || user.Value.giroAccountBalance < 0 || user.Value.prepaidAccountBalance < 0)
+                            if (user.Value.accounts["liquidAccountBalance"] < 0 || user.Value.accounts["giroAccountBalance"] < 0 || user.Value.accounts["prepaidAccountBalance"] < 0)
                             {
                                 Console.WriteLine($"{user.Key} - {user.Value.firstName} - {user.Value.lastName} - {user.Value.birthDate}");
                             }
@@ -376,6 +372,7 @@ class Program
                         Console.ReadKey();
                         break;
                     }
+
                 case 'd':
                     {
                         Console.Clear();
@@ -418,21 +415,21 @@ class Program
                             case 1:
                                 {
                                     Console.Clear();
-                                    Console.WriteLine("1");
+                                    BankAccountMenuFunctions(firstNameOfUser,lastNameOfUser, "Tekući");
                                     Console.ReadKey();
                                     break;
                                 }
                             case 2:
                                 {
-                                    Console.Clear();
-                                    Console.WriteLine("2");
-                                    Console.ReadKey();
+                                Console.Clear(); // u BankAccountMenuFunctions() treba vidit da kad stisenen povratak da me ne ceka da udren ponovo enter ali da me za ostale pita 
+                                BankAccountMenuFunctions(firstNameOfUser, lastNameOfUser, "Žiro");
+                                Console.ReadKey();
                                     break;
                                 }
                             case 3:
                                 {
                                     Console.Clear();
-                                    Console.WriteLine("3");
+                                    BankAccountMenuFunctions(firstNameOfUser, lastNameOfUser, "Prepaid");
                                     Console.ReadKey();
                                     break;
                                 }
@@ -459,15 +456,213 @@ class Program
         
     }
 
-    static void BankAccountMenuFunctions()
+    static void BankAccountMenuFunctions(string firstNameOfInputedUser,string lastNameOfInputedUser, string inputForBankAccountMenu)
     {
         Console.Clear();
-        Console.WriteLine("1 - Unos nove transakcije\n");
+        Console.WriteLine("1 - Unos nove transakcije\n2 - Brisanje transakcije\n3 - Uređivanje transakcije\n4 - Pregled transakcija\n5 - Financijsko izvješće\n6 - Povratak");
+        var isInputCorrect = int.TryParse(Console.ReadLine(), out var inputForBankAccountMenuFunctions);
+        switch (inputForBankAccountMenuFunctions)
+        {
+            case 1:
+                {
+                    int IdOfInputedUser = findIdUsingName(firstNameOfInputedUser, lastNameOfInputedUser);
+                    EnteringNewTransaction(IdOfInputedUser,inputForBankAccountMenu);
+                    break;
+                }
+            case 2:
+                {
+                    Console.Clear();
+                    Console.WriteLine("2");
+                    Console.ReadKey();
+                    break;
+                }
+            case 3:
+                {
+                    Console.Clear();
+                    Console.WriteLine("3");
+                    Console.ReadKey();
+                    break;
+                }
+            case 4:
+                {
+                    Console.Clear();
+                    Console.WriteLine("4");
+                    Console.ReadKey();
+                    break;
+                }
+            case 5:
+                {
+                    Console.Clear();
+                    Console.WriteLine("5");
+                    Console.ReadKey();
+                    break;
+                }
+            case 6:
+                {
+                    Console.Clear();
+                    break;
+                }
+            default:
+                {
+                    Console.WriteLine("Krivi unos, molimo pokusajte ponovo");
+                    Console.ReadKey();
+                    break;
+                }
+        }
+    }
+    static int findIdUsingName(string firstName, string lastName)
+    {
+        foreach (var user in users)
+        {
+            if (user.Value.firstName == firstName && user.Value.lastName == lastName)
+            {
+                return user.Key;
+            }
+        }
+        return -1;
     }
 
-    static void EnteringNewTransaction()
+    static void EnteringNewTransaction(int IdOfInputedUser, string inputForBankAccountMenu )
     {
-        Console.Clear();
-        Console.WriteLine();
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine("a) Trenutno izvršena transakcija (po defaultu trenutni datum i vrijeme)\nb) Ranije izvršena transakcija (potrebno je upisati datum i vrijeme)\nc) Povratak");
+            var isInputCorrect = char.TryParse(Console.ReadLine(), out var inputForEnteringNewTransaction);
+            switch (inputForEnteringNewTransaction)
+            {
+                case 'a':
+                    {
+                        Console.Clear();
+                        SubFunctionEnteringNewTransaction(DateTime.Now, IdOfInputedUser,inputForBankAccountMenu);
+                        break;
+                    }
+
+                case 'b':
+                    {
+                        Console.Clear();
+                        Console.Write("Upisite datum vaše transakcije:");
+                        var isValidTransactionDate = DateTime.TryParse(Console.ReadLine(), out var transactionDate);
+                        if (!isValidTransactionDate)
+                        {
+                            Console.WriteLine("Krivi unos, molimo pokušajte ponovo");
+                            Console.ReadKey();
+                            continue;
+                        }
+                        else
+                        {
+                            if (transactionDate > DateTime.Now)
+                            {
+                                Console.WriteLine("Transakcija ne može biti u budućnosti, pokusajte ponovo:");
+
+                                Console.ReadKey();
+                                continue;
+                            }
+
+                            SubFunctionEnteringNewTransaction(transactionDate, IdOfInputedUser, inputForBankAccountMenu);
+                        }
+                        break;
+                    } 
+                case 'c':
+                    {
+                        Console.Clear();
+                        return;
+                    }
+            }
+        }
+    }
+
+    static void SubFunctionEnteringNewTransaction(DateTime inputedDateTime, int IdOfInputedUser, string inputForBankAccountMenu)
+    {
+        Console.Write("Upišite iznos transakcije:");
+        var isTransactionAmountCorrect = float.TryParse(Console.ReadLine(), out var transactionAmount);
+        if (isTransactionAmountCorrect && transactionAmount >= 0)
+        {
+            Console.Write("Upišite opis transakcije:");
+            var transactionDescription = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(transactionDescription))
+            {
+                transactionDescription = "Standardna transakcija";
+            }
+            Console.Write("Upišite tip transakcije (prihod/rashod):");
+            var transactionType = Console.ReadLine().ToLower();
+            while (true)
+            {
+                if (transactionType != "prihod" && transactionType != "rashod")
+                {
+                    Console.WriteLine("Krivi unos, molimo pokušajte ponovo.");
+                    Console.Write("Upišite tip transakcije (prihod/rashod):");
+                    transactionType = Console.ReadLine().ToLower();
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+
+            }
+            var transactionCategory = string.Empty;
+
+            if (transactionType == "prihod")
+            {
+                Console.Write("Upišite kategoriju transakcije (plaća/poklon/poticaj/zahvala):");
+                transactionCategory = Console.ReadLine().ToLower();
+                while (true)
+                {
+                    if (transactionCategory != "placa" && transactionCategory != "poklon" && transactionCategory != "poticaj" && transactionCategory != "zahvala")
+                    {
+                        Console.WriteLine("Krivi unos, molimo pokušajte ponovo.");
+                        Console.Write("Upišite kategoriju transakcije (plaća/poklon/poticaj/zahvala):");
+                        transactionCategory = Console.ReadLine().ToLower();
+                        continue;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                Console.Write("Upišite kategoriju transakcije (hrana/sport/prijevoz/kozmetika):");
+                transactionCategory = Console.ReadLine().ToLower();
+                while (true)
+                {
+                    if (transactionCategory != "hrana" && transactionCategory != "prijevoz" && transactionCategory != "kozmetika" && transactionCategory != "sport")
+                    {
+                        Console.WriteLine("Krivi unos, molimo pokušajte ponovo");
+                        Console.Write("Upišite kategoriju transakcije (plaća/poklon/poticaj/zahvala):");
+                        transactionCategory = Console.ReadLine().ToLower();
+                        continue;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+            }
+            var transactionTime = inputedDateTime;
+            if (!transactions.ContainsKey(IdOfInputedUser))
+            {
+                transactions[IdOfInputedUser] = new Dictionary<string, List<(int, float, string, string, string, DateTime)>>();
+            }
+            if (!transactions[IdOfInputedUser].ContainsKey(inputForBankAccountMenu))
+            {
+                transactions[IdOfInputedUser][inputForBankAccountMenu] = new List<(int, float, string, string, string, DateTime)>();
+            }
+            var transactionId = transactions[IdOfInputedUser][inputForBankAccountMenu].Count + 1;
+            var transaction = (transactionId, transactionAmount, transactionDescription, transactionType, transactionCategory, transactionTime);
+            transactions[IdOfInputedUser][inputForBankAccountMenu].Add(transaction);
+            Console.WriteLine("Transakcija je uspješna!");
+            Console.ReadKey();
+        }
+
+
+        else
+        {
+            Console.WriteLine("Nevaljan iznos transakcije, pokušajte ponovo.");
+            Console.ReadKey();
+        }
     }
 }
