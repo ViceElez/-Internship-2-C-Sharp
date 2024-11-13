@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
+using System.Security.Principal;
 using System.Transactions;
 
 class Program
@@ -300,17 +302,15 @@ class Program
 
     static void UserMenuEditing()
     {
-        //pogledaj kako prominit da ti moze izac iz menija ako korisnik kad unese krivi unos i ne zeli vise unosit
-        Console.Clear();
-        Console.WriteLine("a) Po id_u\nb) Povratak");
-        var isInputCorrect = char.TryParse(Console.ReadLine(), out var inputForUserMenuEditing);
-        switch (inputForUserMenuEditing)
-        {
-            case 'a':
-                {
-                    Console.Clear();
-                    while (true)
+        while (true) {
+            Console.Clear();
+            Console.WriteLine("a) Po id_u\nb) Povratak");
+            var isInputCorrect = char.TryParse(Console.ReadLine(), out var inputForUserMenuEditing);
+            switch (inputForUserMenuEditing)
+            {
+                case 'a':
                     {
+                        Console.Clear();
                         Console.Clear();
                         Console.Write("Upisite id osobe koju zelite izmjeniti:");
                         var isIdCorrect = int.TryParse(Console.ReadLine(), out var id);
@@ -318,61 +318,84 @@ class Program
                         {
                             if (users.ContainsKey(id))
                             {
-                                Console.WriteLine("Unesite novo ime korisnika");
+                                var user = users[id];
+                                Console.WriteLine("Unesite novo ime korisnika(ili Enter ako ne zelite mijenjati):");
                                 var newFirstName = Console.ReadLine();
-                                Console.WriteLine("Unesite novo prezime korisnika");
+                                if (!string.IsNullOrWhiteSpace(newFirstName))
+                                {
+                                    user.firstName = newFirstName;
+                                }
+
+                                Console.WriteLine("Unesite novo prezime korisnika(ili Enter ako ne zelite mijenjati):");
                                 var newLastName = Console.ReadLine();
-                                Console.WriteLine("Unesite novi datum rođenja korisnika");
-                                var validbirthDate = DateTime.TryParse(Console.ReadLine(), out var newBirthDate);
-                                if (!validbirthDate)
+                                if (!string.IsNullOrWhiteSpace(newLastName))
                                 {
-                                    Console.WriteLine("Krivi unos, molimo pokušajte ponovo");
-                                    Console.ReadKey();
-                                    continue;
+                                    user.lastName = newLastName;
                                 }
-                                else
+
+                                Console.WriteLine("Unesite novi datum(ili Enter ako ne zelite mijenjati): ");
+                                var newDateTime = Console.ReadLine();
+                                while (true)
                                 {
-                                    if (newBirthDate > DateTime.Now)
+                                    if (!string.IsNullOrWhiteSpace(newDateTime))
                                     {
-                                        Console.WriteLine("Datum rođenja ne može biti u budućnosti");
-                                        Console.ReadKey();
-                                        continue;
+                                        var isDateTimeCorrect = DateTime.TryParse(newDateTime, out var newDateTimeBirth);
+                                        if (isDateTimeCorrect)
+                                        {
+                                            if (newDateTimeBirth > DateTime.Now)
+                                            {
+                                                Console.WriteLine("Datum rođenja ne može biti u budućnosti");
+                                                Console.ReadKey();
+                                            }
+                                            user.birthDate = newDateTimeBirth;
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("Krivi unos, molimo pokusajte ponovo.");
+                                            Console.WriteLine("Unesite novi datum(ili Enter ako ne zelite mijenjati): ");
+                                            newDateTime = Console.ReadLine();
+                                            continue;
+                                        }
                                     }
-                                    users[id] = (newFirstName, newLastName, newBirthDate, users[id].accounts);
-                                    Console.WriteLine("Korisnik uspješno izmjenjen");
-                                    break;
+                                    else
+                                    {
+                                        break;
+                                    }
                                 }
+                                users[id] = user;
+                                Console.WriteLine("Korisnik uspjesno izmjenjen.");
+
                             }
                             else
                             {
                                 Console.WriteLine("Korisnik s tim id-om ne postoji");
-                                Console.ReadKey();
                             }
                         }
                         else
                         {
                             Console.WriteLine("Krivi unos, molimo pokusajte ponovo");
                             Console.ReadKey();
-                            return;
+                            break; ;
                         }
-                    }
-                    Console.ReadKey();
-                    break;
+                        Console.ReadKey();
+                        break;
 
-                }
-            case 'b':
-                {
-                    Console.Clear();
-                    break;
-                }
-            default:
-                {
-                    Console.WriteLine("Krivi unos, molimo pokusajte ponovo");
-                    Console.ReadKey();
-                    Console.Clear();
-                    break;
-                }
+                    }
+                case 'b':
+                    {
+                        return;
+                    }
+                default:
+                    {
+                        Console.WriteLine("Krivi unos, molimo pokusajte ponovo");
+                        Console.ReadKey();
+                        Console.Clear();
+                        break;
+                    }
+            }
         }
+
 
     }
 
@@ -510,26 +533,24 @@ class Program
             Console.Clear();
             Console.WriteLine("1 - Unos nove transakcije\n2 - Brisanje transakcije\n3 - Uređivanje transakcije\n4 - Pregled transakcija\n5 - Financijsko izvješće\n6 - Povratak");
             var isInputCorrect = int.TryParse(Console.ReadLine(), out var inputForBankAccountMenuFunctions);
+            int IdOfInputedUser = findIdUsingName(firstNameOfInputedUser, lastNameOfInputedUser);
             switch (inputForBankAccountMenuFunctions)
             {
                 case 1:
                     {
-                        int IdOfInputedUser = findIdUsingName(firstNameOfInputedUser, lastNameOfInputedUser);
                         EnteringNewTransaction(IdOfInputedUser, inputForBankAccountMenu);
                         break;
                     }
                 case 2:
                     {
                         Console.Clear();
-                        int IdOfInputedUser = findIdUsingName(firstNameOfInputedUser, lastNameOfInputedUser);
                         DeletingTransactions(IdOfInputedUser, inputForBankAccountMenu);
                         break;
                     }
                 case 3:
                     {
                         Console.Clear();
-                        Console.WriteLine("3");
-                        Console.ReadKey();
+                        EditingTransactions(IdOfInputedUser, inputForBankAccountMenu);
                         break;
                     }
                 case 4:
@@ -558,7 +579,7 @@ class Program
                     }
             }
         }
-        
+
     }
     static int findIdUsingName(string firstName, string lastName)
     {
@@ -731,7 +752,7 @@ class Program
             {
                 case 'a':
                     {
-                        Console.Write("Unesite id transakcije koju zelite izbrisati transakcije:");
+                        Console.Write("Unesite id transakcije koju zelite izbrisati:");
                         var isAmountCorrect = float.TryParse(Console.ReadLine(), out var idToDelete);
                         bool foundTransactionToDelete = false;
                         if (isAmountCorrect)
@@ -740,7 +761,7 @@ class Program
                             {
                                 if (account.Key == inputForBankAccountMenu)
                                 {
-                                    var transactionsToDelete = account.Value.Where(transaction => transaction.transactionId==idToDelete).ToList();
+                                    var transactionsToDelete = account.Value.Where(transaction => transaction.transactionId == idToDelete).ToList();
 
                                     foreach (var transaction in transactionsToDelete)
                                     {
@@ -786,10 +807,10 @@ class Program
                     }
                 case 'b':
                     {
-                        Console.Write("Unesite iznos ispod kojeg zelite izbrisati transakcije:");
+                        Console.Write("Unesite iznos ispod kojeg zelite izbrisati:");
                         var isAmountCorrect = float.TryParse(Console.ReadLine(), out var amountUnderWhichIsDeleted);
                         bool foundTransactionToDelete = false;
-                        if (isAmountCorrect && amountUnderWhichIsDeleted>=0)
+                        if (isAmountCorrect && amountUnderWhichIsDeleted >= 0)
                         {
                             foreach (var account in transactions[IdOfInputedUser])
                             {
@@ -841,7 +862,7 @@ class Program
                     }
                 case 'c':
                     {
-                        Console.Write("Unesite iznos iznad kojeg zelite izbrisati transakciju:");
+                        Console.Write("Unesite iznos iznad kojeg zelite izbrisati:");
                         var isAmountCorrect = float.TryParse(Console.ReadLine(), out var amountAboveWhichIsDeleted);
                         bool foundTransactionToDelete = false;
                         if (isAmountCorrect && amountAboveWhichIsDeleted >= 0)
@@ -996,7 +1017,7 @@ class Program
 
                         foreach (var account in transactions[IdOfInputedUser])
                         {
-                            if (account.Key == inputForBankAccountMenu)  
+                            if (account.Key == inputForBankAccountMenu)
                             {
                                 var transactionsToDelete = account.Value.Where(transaction => transaction.transactionCategory.ToLower() == categoryToDelete).ToList();
 
@@ -1051,4 +1072,292 @@ class Program
         }
 
     }
+
+    static void EditingTransactions(int IdOfInputedUser, string inputForBankAccountMenu)
+    {
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine("a) Pod id-u\nb) Povratak");
+            var isInputCorrect = char.TryParse(Console.ReadLine(), out var inputForEditingTransaction);
+            switch (inputForEditingTransaction)
+            {
+                case 'a':
+                    {
+                        Console.Write("Unesite id transakcije koju zelite promijeniti: ");
+                        var isIdCorrect = float.TryParse(Console.ReadLine(), out var idToEdit);
+                        bool foundTransactionToEdit = false;
+
+                        if (isIdCorrect)
+                        {
+                            var accountTransactions = transactions[IdOfInputedUser][inputForBankAccountMenu];
+                            for (int i = 0; i < accountTransactions.Count; i++)
+                            {
+                                var transaction = accountTransactions[i];
+                                if (accountTransactions[i].transactionId == idToEdit)
+                                {
+                                    foundTransactionToEdit = true;
+                                    Console.WriteLine($"{accountTransactions[i].transactionId} - {accountTransactions[i].transactionAmount} - {accountTransactions[i].transactionDescription} - {accountTransactions[i].transactionType} - {accountTransactions[i].transactionCategory} - {accountTransactions[i].transactionTime}");
+
+                                    Console.WriteLine("Unesite novi iznos(ili Enter ako ne zelite mijenjati): ");
+                                    var newDescriptiom = Console.ReadLine();
+                                    while (true)
+                                    {
+                                        if (!string.IsNullOrWhiteSpace(newDescriptiom))
+                                        {
+                                            var isAmountCorrectNew = float.TryParse(newDescriptiom, out var newAmountFloat);
+                                            if (isAmountCorrectNew)
+                                            {
+                                                transaction.transactionAmount = newAmountFloat;
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("Krivi unos, molimo pokusajte ponovo.");
+                                                Console.WriteLine("Unesite novi iznos(ili Enter ako ne zelite mijenjati): ");
+                                                newDescriptiom = Console.ReadLine();
+                                                continue;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            break;
+                                        }
+                                    }
+
+                                    Console.WriteLine("Unesite novi opis(ili Enter ako ne zelite mijenjati): ");
+                                    var newDescription = Console.ReadLine();
+                                    if (!string.IsNullOrWhiteSpace(newDescription))
+                                    {
+                                        transaction.transactionDescription = newDescription;
+                                    }
+
+                                    Console.WriteLine("Unesite novi tip(prihod/rashod)(ili Enter ako ne zelite mijenjati): ");
+                                    var newType = Console.ReadLine().ToLower();
+                                    var newCategory = string.Empty;
+                                    while (true)
+                                    {
+                                        if (!string.IsNullOrWhiteSpace(newType))
+                                        {
+                                            if (newType == "prihod")
+                                            {
+                                                transaction.transactionType = newType;
+                                                Console.WriteLine("Unesite novu kategoriju(placa/poklon/poticaj/zahvala)(ili Enter ako ne zelite mijenjati): ");
+                                                newCategory = Console.ReadLine().ToLower();
+                                                while (true)
+                                                {
+                                                    if (!string.IsNullOrEmpty(newCategory))
+                                                    {
+                                                        if (newCategory == "placa" || newCategory == "poklon" || newCategory == "poticaj" || newCategory == "zahvala")
+                                                        {
+                                                            transaction.transactionCategory = newCategory;
+                                                            break;
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("Krivi unos, molimo pokusajte ponovo.");
+                                                            Console.WriteLine("Unesite novu kategoriju(placa/poklon/poticaj/zahvala/hrana/sport/prijevoz/kozmetika)(ili Enter ako ne zelite mijenjati): ");
+                                                            newCategory = Console.ReadLine().ToLower();
+                                                            continue;
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        break;
+                                                    }
+                                                }
+                                                break;
+                                            }
+                                            else if (newType == "rashod")
+                                            {
+                                                transaction.transactionType = newType;
+                                                Console.WriteLine("Unesite novu kategoriju(hrana/sport/prijevoz/kozmetika)(ili Enter ako ne zelite mijenjati): ");
+                                                newCategory = Console.ReadLine().ToLower();
+                                                while (true)
+                                                {
+                                                    if (!string.IsNullOrEmpty(newCategory))
+                                                    {
+                                                        if (newCategory == "hrana" || newCategory == "sport" || newCategory == "prijevoz" || newCategory == "kozmetika")
+                                                        {
+                                                            transaction.transactionCategory = newCategory;
+                                                            break;
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("Krivi unos, molimo pokusajte ponovo.");
+                                                            Console.WriteLine("Unesite novu kategoriju(placa/poklon/poticaj/zahvala/hrana/sport/prijevoz/kozmetika)(ili Enter ako ne zelite mijenjati): ");
+                                                            newCategory = Console.ReadLine().ToLower();
+                                                            continue;
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        break;
+                                                    }
+                                                }
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("Krivi unos, molimo pokusajte ponovo.");
+                                                Console.WriteLine("Unesite novi tip(ili Enter ako ne zelite mijenjati): ");
+                                                newType = Console.ReadLine().ToLower();
+                                                continue;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            newType = transaction.transactionType;
+                                            if (newType == "prihod")
+                                            {
+                                                Console.WriteLine("Unesite novu kategoriju(placa/poklon/poticaj/zahvala)(ili Enter ako ne zelite mijenjati): ");
+                                                newCategory = Console.ReadLine().ToLower();
+                                                while (true)
+                                                {
+                                                    if (!string.IsNullOrEmpty(newCategory))
+                                                    {
+                                                        if (newCategory == "placa" || newCategory == "poklon" || newCategory == "poticaj" || newCategory == "zahvala")
+                                                        {
+                                                            transaction.transactionCategory = newCategory;
+                                                            break;
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("Krivi unos, molimo pokusajte ponovo.");
+                                                            Console.WriteLine("Unesite novu kategoriju(placa/poklon/poticaj/zahvala)(ili Enter ako ne zelite mijenjati): ");
+                                                            newCategory = Console.ReadLine().ToLower();
+                                                            continue;
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        break;
+                                                    }
+                                                }
+
+                                                break;
+                                            }
+
+                                            else if (newType == "rashod")
+                                            {
+                                                Console.WriteLine("Unesite novu kategoriju(hrana/sport/prijevoz/kozmetika)(ili Enter ako ne zelite mijenjati): ");
+                                                newCategory = Console.ReadLine().ToLower();
+                                                while (true)
+                                                {
+                                                    if (!string.IsNullOrEmpty(newCategory))
+                                                    {
+                                                        if (newCategory == "hrana" || newCategory == "sport" || newCategory == "prijevoz" || newCategory == "kozmetika")
+                                                        {
+                                                            transaction.transactionCategory = newCategory;
+                                                            break;
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("Krivi unos, molimo pokusajte ponovo.");
+                                                            Console.WriteLine("Unesite novu kategoriju(hrana/sport/prijevoz/kozmetika)(ili Enter ako ne zelite mijenjati): ");
+                                                            newCategory = Console.ReadLine().ToLower();
+                                                            continue;
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        break;
+                                                    }
+                                                }
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("Krivi unos, molimo pokusajte ponovo.");
+                                                Console.WriteLine("Unesite novi tip(prihod/rashod)(ili Enter ako ne zelite mijenjati): ");
+                                                newType = Console.ReadLine().ToLower();
+                                                continue;
+                                            }
+                                            break;
+                                        }
+                                    }
+
+                                    Console.WriteLine("Unesite novi datum(ili Enter ako ne zelite mijenjati): ");
+                                    var newDateTime = Console.ReadLine();
+                                    while (true)
+                                    {
+                                        if (!string.IsNullOrWhiteSpace(newDateTime))
+                                        {
+                                            var isDateTimeCorrect = DateTime.TryParse(newDateTime, out var newDateTimeDateTime);
+                                            if (isDateTimeCorrect)
+                                            {
+                                                transaction.transactionTime = newDateTimeDateTime;
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("Krivi unos, molimo pokusajte ponovo.");
+                                                Console.WriteLine("Unesite novi datum(ili Enter ako ne zelite mijenjati): ");
+                                                newDateTime = Console.ReadLine();
+                                                continue;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            break;
+                                        }
+                                    }
+                                    Console.WriteLine("Da li stvarno želite izmjeniti ovu transakciju (da/ne)?");
+                                    var answer = string.Empty;
+                                    do
+                                    {
+                                        answer = Console.ReadLine().ToLower();
+                                        if (answer == "da")
+                                        {
+                                            foundTransactionToEdit = true;
+                                            accountTransactions[i] = transaction;
+                                            Console.WriteLine("Transakcija uspješno izmjenjena");
+                                            Console.ReadKey();
+                                            break;
+                                        }
+                                        else if (answer == "ne")
+                                        {
+                                            foundTransactionToEdit = true;
+                                            Console.WriteLine("Transakcija nije izmjenjena.");
+                                            Console.ReadKey();
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("Morate upisati da ili ne");
+                                            continue;
+                                        }
+                                    } while (answer != "da" && answer != "ne");
+                                }
+                            }
+                            if (!foundTransactionToEdit)
+                            {
+                                Console.WriteLine($"Nema transakcija s id-om: {idToEdit}.");
+                                Console.ReadKey();
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Krivi unos, molimo pokusajte ponovo.");
+                            Console.ReadKey();
+                        }
+                        break;
+                 }
+
+                case 'b':
+                    {
+                        return;
+                    }
+                default:
+                    {
+                        Console.WriteLine("Krivi unos, molimo pokusajte ponovo");
+                        Console.ReadKey();
+                        continue;
+                    }
+            }
+        }
+    }
 }
+ 
+ 
+
