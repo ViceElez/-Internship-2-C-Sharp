@@ -39,7 +39,7 @@ class Program
         (2, 75.0f, "Groceries", "Rashod", "Hrana", new DateTime(2024, 2, 10))
     }},
     { "Žiro", new List<(int, float, string, string, string, DateTime)> {
-        (3, 1200.0f, "Monthly salary", "Prihod", "Plaća", new DateTime(2024, 3, 1))
+        (3, 1200.0f, "Monthly salary", "Prihod", "Placa", new DateTime(2024, 3, 1))
     }},
     { "Prepaid", new List<(int, float, string, string, string, DateTime)> {
         (4, 20.0f, "Gym membership", "Rashod", "Sport", new DateTime(2024, 4, 5))
@@ -51,7 +51,7 @@ class Program
         (5, 60.0f, "Sports equipment", "Rashod", "Sport", new DateTime(2024, 5, 15))
     }},
     { "Žiro", new List<(int, float, string, string, string, DateTime)> {
-        (6, 900.0f, "Monthly salary", "Prihod", "Plaća", new DateTime(2024, 5, 20))
+        (6, 900.0f, "Monthly salary", "Prihod", "Placa", new DateTime(2024, 5, 20))
     }},
     { "Prepaid", new List<(int, float, string, string, string, DateTime)> {
         (7, 30.0f, "Transportation fees", "Rashod", "Prijevoz", new DateTime(2024, 5, 22))
@@ -75,7 +75,7 @@ class Program
         (11, 120.0f, "Fuel", "Rashod", "Prijevoz", new DateTime(2024, 7, 5))
     }},
     { "Žiro", new List<(int, float, string, string, string, DateTime)> {
-        (12, 1150.0f, "Salary payment", "Prihod", "Plaća", new DateTime(2024, 7, 30))
+        (12, 1150.0f, "Salary payment", "Prihod", "Placa", new DateTime(2024, 7, 30))
     }},
     { "Prepaid", new List<(int, float, string, string, string, DateTime)> {
         (13, 25.0f, "Thank you gift", "Prihod", "Zahvala", new DateTime(2024, 7, 12))
@@ -493,7 +493,7 @@ class Program
                             }
                         case 2:
                             {
-                                Console.Clear(); // u BankAccountMenuFunctions() treba vidit da kad stisenen povratak da me ne ceka da udren ponovo enter ali da me za ostale pita 
+                                Console.Clear(); 
                                 BankAccountMenuFunctions(firstNameOfUser, lastNameOfUser, "Žiro");
                                 break;
                             }
@@ -556,15 +556,13 @@ class Program
                 case 4:
                     {
                         Console.Clear();
-                        Console.WriteLine("4");
-                        Console.ReadKey();
+                        OverviewOfTransactions(IdOfInputedUser, inputForBankAccountMenu);
                         break;
                     }
                 case 5:
                     {
                         Console.Clear();
-                        Console.WriteLine("5");
-                        Console.ReadKey();
+                        FinancialSummary(IdOfInputedUser, inputForBankAccountMenu);
                         break;
                     }
                 case 6:
@@ -1354,6 +1352,331 @@ class Program
                         Console.ReadKey();
                         continue;
                     }
+            }
+        }
+    }
+
+    static void OverviewOfTransactions(int IdOfInputedUser, string inputForBankAccountMenu)
+    {
+
+    
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine("a) Sve transakcije kako su spremljene\nb) Sve transakcije sortirane po iznosu uzlazno\n" +
+                "c) Sve transakcije sortirane po iznosu silazno\nd) Sve transakcije sortirane po opisu abecedno\ne) Sve transakcije sortirane po datumu uzlazno\n" +
+                "f) Sve transakcije sortirane po datumu silazno\ng) Svi prihodi\nh) Svi rashodi\ni) Sve transakcije za odabranu kategoriju\n" +
+                "j) Sve transakcije za odabrani tip i kategoriju\nk) Povratak");
+            var isInputCorrect = char.TryParse(Console.ReadLine(), out var inputForOverviewOfTransactions);
+            switch (inputForOverviewOfTransactions)
+            {
+                case 'a':
+                    {
+                        bool foundTransation=false;
+                        Console.Clear();
+                        foreach (var account in transactions[IdOfInputedUser])
+                        {
+                            if (account.Key == inputForBankAccountMenu)
+                            {
+                                foreach (var transaction in account.Value)
+                                {
+                                    foundTransation = true;
+                                    Console.WriteLine($"{transaction.transactionType} - {transaction.transactionAmount} - {transaction.transactionDescription} - {transaction.transactionCategory} - {transaction.transactionTime}");
+                                }
+                            }
+                        }
+                        if (!foundTransation)
+                        {
+                            Console.WriteLine("Nema transakcija");
+                        }
+                        Console.ReadKey();
+                        break;
+                    }
+                case 'b':
+                    {
+                        Console.Clear();
+                        bool foundTransation = false;
+                        foreach (var account in transactions[IdOfInputedUser])
+                        {
+                            if (account.Key == inputForBankAccountMenu)
+                            {
+                                foreach (var transaction in account.Value.OrderBy(transaction => transaction.transactionAmount))
+                                {
+                                    foundTransation = true;
+                                    Console.WriteLine($"{transaction.transactionType} - {transaction.transactionAmount} - {transaction.transactionDescription} - {transaction.transactionCategory} - {transaction.transactionTime}");
+                                }
+                            }
+                        }
+                        if (!foundTransation)
+                        {
+                            Console.WriteLine("Nema transakcija");
+                        }
+                        Console.ReadKey();
+                        break;
+                    }
+                case 'c':
+                    {
+                        Console.Clear();
+                        bool foundTransation = false;
+                        foreach (var account in transactions[IdOfInputedUser])
+                        {
+                            if (account.Key == inputForBankAccountMenu)
+                            {
+                                foreach (var transaction in account.Value.OrderByDescending(transaction => transaction.transactionAmount))
+                                {
+                                    foundTransation = true;
+                                    Console.WriteLine($"{transaction.transactionType} - {transaction.transactionAmount} - {transaction.transactionDescription} - {transaction.transactionCategory} - {transaction.transactionTime}");
+                                }
+                            }
+                        }
+                        if (!foundTransation)
+                        {
+                            Console.WriteLine("Nema transakcija");
+                        }
+                        Console.ReadKey();
+                        break;
+                    }
+                case 'd':
+                    {
+                        Console.Clear();
+                        bool foundTransation = false;
+                        foreach (var account in transactions[IdOfInputedUser])
+                        {
+                            if (account.Key == inputForBankAccountMenu)
+                            {
+                                foreach (var transaction in account.Value.OrderBy(transaction => transaction.transactionDescription))
+                                {
+                                    foundTransation = true;
+                                    Console.WriteLine($"{transaction.transactionType} - {transaction.transactionAmount} - {transaction.transactionDescription} - {transaction.transactionCategory} - {transaction.transactionTime}");
+                                }
+                            }
+                        }
+                        if (!foundTransation)
+                        {
+                            Console.WriteLine("Nema transakcija");
+                        }
+                        Console.ReadKey();
+                        break;
+                    }
+                case 'e':
+                    {
+                        Console.Clear();
+                        bool foundTransation = false;
+                        foreach (var account in transactions[IdOfInputedUser])
+                        {
+                            if (account.Key == inputForBankAccountMenu)
+                            {
+                                foreach (var transaction in account.Value.OrderBy(transaction => transaction.transactionTime))
+                                {
+                                    foundTransation = true;
+                                    Console.WriteLine($"{transaction.transactionType} - {transaction.transactionAmount} - {transaction.transactionDescription} - {transaction.transactionCategory} - {transaction.transactionTime}");
+                                }
+                            }
+                        }
+                        if (!foundTransation)
+                        {
+                            Console.WriteLine("Nema transakcija");
+                        }
+                        Console.ReadKey();
+                        break;
+                    }
+                case 'f':
+                    {
+                        Console.Clear();
+                        bool foundTransation = false;
+                        foreach (var account in transactions[IdOfInputedUser])
+                        {
+                            if (account.Key == inputForBankAccountMenu)
+                            {
+                                foreach (var transaction in account.Value.OrderByDescending(transaction => transaction.transactionTime))
+                                {
+                                    foundTransation = true;
+                                    Console.WriteLine($"{transaction.transactionType} - {transaction.transactionAmount} - {transaction.transactionDescription} - {transaction.transactionCategory} - {transaction.transactionTime}");
+                                }
+                            }
+                        }
+                        if (!foundTransation)
+                        {
+                            Console.WriteLine("Nema transakcija");
+                        }
+                        Console.ReadKey();
+                        break;
+                    }
+                case 'g':
+                    {
+                        Console.Clear();
+                        bool foundTransation = false;
+                        foreach (var account in transactions[IdOfInputedUser])
+                        {
+                            if (account.Key == inputForBankAccountMenu)
+                            {
+                                foreach (var transaction in account.Value.Where(transaction => transaction.transactionType.ToLower() == "prihod"))
+                                {
+                                    foundTransation = true;
+                                    Console.WriteLine($"{transaction.transactionType} - {transaction.transactionAmount} - {transaction.transactionDescription} - {transaction.transactionCategory} - {transaction.transactionTime}");
+                                }
+                            }
+                        }
+                        if (!foundTransation)
+                        {
+                            Console.WriteLine("Nema transakcija pod tipom: prihodi");
+                        }
+                        Console.ReadKey();
+                        break;
+                    }
+                case 'h':
+                    {
+                        Console.Clear();
+                        bool foundTransation = false;
+                        foreach (var account in transactions[IdOfInputedUser])
+                        {
+                            if (account.Key == inputForBankAccountMenu)
+                            {
+                                foreach (var transaction in account.Value.Where(transaction => transaction.transactionType.ToLower() == "rashod"))
+                                {
+                                    foundTransation = true;
+                                    Console.WriteLine($"{transaction.transactionType} - {transaction.transactionAmount} - {transaction.transactionDescription} - {transaction.transactionCategory} - {transaction.transactionTime}");
+                                }
+                            }
+                        }
+                        if (!foundTransation)
+                        {
+                            Console.WriteLine("Nema transakcija pod tipom: rashod");
+                        }
+                        Console.ReadKey();
+                        break;
+                    }
+                case 'i':
+                    {
+                        Console.Clear();
+                        bool foundTransation = false;
+                        Console.Write("Unesite kategoriju čije transakcije želite vidjeti (placa/poklon/poticaj/zahvala/hrana/sport/prijevoz/kozmetika): ");
+                        var categoryToSee = Console.ReadLine().ToLower();
+                        if (categoryToSee == "placa" || categoryToSee == "poklon" || categoryToSee == "poticaj" || categoryToSee == "zahvala" || categoryToSee == "hrana" || categoryToSee == "sport" || categoryToSee == "prijevoz" || categoryToSee == "kozmetika")
+                        {
+                            foreach (var account in transactions[IdOfInputedUser])
+                            {
+                                if (account.Key == inputForBankAccountMenu)
+                                {
+                                    foreach (var transaction in account.Value.Where(transaction => transaction.transactionCategory.ToLower() == categoryToSee))
+                                    {
+                                        foundTransation = true;
+                                        Console.WriteLine($"{transaction.transactionType} - {transaction.transactionAmount} - {transaction.transactionDescription} - {transaction.transactionCategory} - {transaction.transactionTime}");
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Krivi unos, molimo pokusajte ponovo");
+                            Console.ReadKey();
+                            break;
+                        }
+                        if (!foundTransation)
+                        {
+                            Console.WriteLine($"Nema transakcija pod kategorijom:{categoryToSee}");
+                        }
+                        
+                        Console.ReadKey();
+                        break;
+                    }
+                case 'j':
+                    {
+                        Console.Clear();
+                        Console.Write("Unesite tip transakcije (prihod/rashod): ");
+                        var typeToSee = Console.ReadLine().ToLower();
+                        bool foundTransaction = false;
+                        var categoryToSee = string.Empty;
+                        if (typeToSee == "prihod")
+                        {
+                            Console.WriteLine("Odaberite kategoriju transakcije(placa/poklon/poticaj/zahvala): ");
+                            categoryToSee = Console.ReadLine().ToLower();
+                            if (categoryToSee == "placa" || categoryToSee == "poklon" || categoryToSee == "poticaj" || categoryToSee == "zahvala")
+                            {
+                                foreach (var account in transactions[IdOfInputedUser])
+                                {
+                                    if (account.Key == inputForBankAccountMenu)
+                                    {
+                                        foreach (var transaction in account.Value.Where(transaction => transaction.transactionType.ToLower() == typeToSee && transaction.transactionCategory.ToLower() == categoryToSee))
+                                        {
+                                            foundTransaction = true;
+                                            Console.WriteLine($"{transaction.transactionType} - {transaction.transactionAmount} - {transaction.transactionDescription} - {transaction.transactionCategory} - {transaction.transactionTime}");
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("Krivi unos, molimo pokusajte ponovo");
+                                Console.ReadKey();
+                                break;
+                            }
+                        }
+                        else if (typeToSee == "rashod")
+                        {
+                            Console.WriteLine("Odaberite kategoriju transakcije(hrana/sport/prijevoz/kozmetika): ");
+                            categoryToSee = Console.ReadLine();
+                            if (categoryToSee == "hrana" || categoryToSee == "sport" || categoryToSee == "prijevoz" || categoryToSee == "kozmetika")
+                            {
+                                foreach (var account in transactions[IdOfInputedUser])
+                                {
+                                    if (account.Key == inputForBankAccountMenu)
+                                    {
+                                        foreach (var transaction in account.Value.Where(transaction => transaction.transactionType.ToLower() == typeToSee && transaction.transactionCategory == categoryToSee))
+                                        {
+                                            foundTransaction = true;
+                                            Console.WriteLine($"{transaction.transactionType} - {transaction.transactionAmount} - {transaction.transactionDescription} - {transaction.transactionCategory} - {transaction.transactionTime}");
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("Krivi unos, molimo pokusajte ponovo");
+                                Console.ReadKey();
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Krivi unos, molimo pokusajte ponovo");
+                            Console.ReadKey();
+                            break;
+                        }
+                        if (!foundTransaction)
+                        {
+                            Console.WriteLine($"Nema transakcija pod tipom {typeToSee} i kategorijom {categoryToSee}");
+                        }
+                        Console.ReadKey();
+                        break;
+                    }
+                case 'k':
+                    {
+                        return;
+                    }
+                default:
+                    {
+                        Console.WriteLine("Krivi unos, molimo pokusajte ponovo");
+                        Console.ReadKey();
+                        break;
+                    }
+            }
+        }
+       
+    }
+
+    static void FinancialSummary(int IdOfInputedUser, string inputForBankAccountMenu)
+    {
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine("a) trenutno stanje računa\nb) Broj ukupnih transakcija\nc) Ukupan iznos prihoda i rashoda za odabrani mjesec i godinu\n" +
+                "d) Postotak udjela rashoda za odabranu kategoriju\ne) Prosječni iznos transakcije za odabrani mjesec i godinu\n" +
+                "f) Prosječni iznos transakcije za odabranu kategoriju\r\n");
+            var isInputCorrect = char.TryParse(Console.ReadLine(), out var inputForFinancialSummary);
+            switch (inputForFinancialSummary)
+            {
+
             }
         }
     }
